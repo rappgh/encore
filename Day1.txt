@@ -1,0 +1,256 @@
+Intro
+How to be a Modern Network Engr
+https://chat.openai.com/chat
+
+CCNP/CCIE = Encor + elective: +SDWAN
+
+task1: how to setup your home CCNP EncorLab
+1. install VMware 17 pro
+2. install 7zip
+3. CSR1000v install at home
+
+Task2: 
+config t
+no logging console
+no ip domain-lookup
+int gi 1
+ ip add dhcp
+ no shut
+int gi 2
+ ip add dhcp
+ no shut
+do sh ip int brief
+
+git clone https://github.com/rivancorp/encord1
+
+C - docker container
+
+YT - network chuck dockers
+
+docker container
+VPG
+Gi2
+guestshell enable
+guestshell run python
+guestshell run bash
+sudo su
+ls /
+show ip int brief
+
+import cli
+
+commands = [
+    "show ip int brief",
+]
+
+for c in commands:
+    cli.executep(c)
+
+task 3: creds
+linuxhayup
+root/C1sc0123
+
+CiscoCsrv
+admin/password
+
+task 4: how a CCIE/CCNP configure
+config t
+alias exec sc sh run | section
+
+config t
+hostname CoreTAAS
+no logging console
+no ip domain-lookup
+enable secret pass
+line cons 0
+ exec-timeout 0 0
+ no login
+line vty 0 14
+ exec-timeout 0 0
+ no login
+int Vlan 1
+ no shut
+ ip add 10.21.1.2 255.255.255.0
+int Vlan 10
+ no shut
+ ip add 10.21.10.2 255.255.255.0
+int Vlan 100
+ no shut
+ ip add 10.21.100.2 255.255.255.0
+@CoreBABA
+config t
+hostname CoreBABA
+no logging console
+no ip domain-lookup
+enable secret pass
+line cons 0
+ exec-timeout 0 0
+ no login
+line vty 0 14
+ exec-timeout 0 0
+ no login
+int Vlan 1
+ no shut
+ ip add 10.21.1.4 255.255.255.0
+int Vlan 10
+ no shut
+ ip add 10.21.10.4 255.255.255.0
+int Vlan 100
+ no shut
+ ip add 10.21.100.4 255.255.255.0
+
+task 5: CCNP switching skills:
+
+1. jailbreak/password recovery
+ a. remove power cable + long press mode button
+ b. flash init
+ c. rename flash:config.text flash:config.bak
+ d. dir flash
+ e. boot
+ f. ctril + c
+    enable
+    copy flash:config.bak run
+
+2. How to know if you are using very expensive Switch : Cisco, Juniper, HP, Dell
+ a. if wireshark catches stp/802.1d = expensive
+ b. if STP captures reveal Root Bridge = 32768/default - bad network engr.
+ 
+1.trunking
+T/B
+config t
+ Int range fa 0/10-12
+  switchport trunk encap dot1Q
+  switchport mode trunk
+ Int Gi 0/1
+  switchport
+  switchport trunk encap dot1Q
+  switchport mode trunk
+end
+
+2. vtp: vlan trunking protocol
+      sync all Vlan information
+T/B
+config t
+vtp domain ccnp
+vtp password encor
+vtp mode server
+vtp version 2
+end
+
+3. vlans done
+4. svi - switch virtual interface
+5. LacpETC: link aggregation control protocol
+ Port aggregation using etherchannel
+T/B
+config t
+int range fa0/10-12
+ channel-group 1 mode active
+ channel-protocol lacp
+ int port-channel 1
+  switchport trunk encap dot1Q
+  switchport mode trunk
+  end
+show etherchannel summary
+
+sh int po 1 | inc BW
+sh spanning-tree vlan 1
+
+skill6: FHRP-First hop redundancy protocol
+hsrp: hot standby routing protocol: layer 3 switch
+vrrp: virtual router redundancy protocol: anyBrand
+glbp: global load balancing protocol: any cisco swhitch
+
+taas: PLDT
+config t
+track 1 interface gi 0/1 line-protocol
+!bantayan gi0/1 kung maputol
+Int vlan 1
+ standby 1 ip 10.21.1.6
+ standby 1 preempt
+ standby 1 priority 150
+ standby 1 track 1 decrement 60
+end
+
+baba: Converge
+Int vlan 1
+ standby 1 ip 10.21.1.6
+ standby 1 preempt
+ standby 1 priority 100
+end
+
+show standby
+
+EncorSkill6. 64bit eigrp
+
+D1
+router eigrp encor
+address family ipv4 unicast autonomous-system 100
+ network 10.2.1.0 0.0.0.255
+ network 10.2.2.0 0.0.0.255
+ network 192.168.1.128 0.0.0.31
+ network 10.1.4.4 0.0.0.3
+ no auto-summary
+exit-address-family
+
+D2
+router eigrp encor
+address family ipv4 unicast autonomous-system 100
+ network 10.2.1.0 0.0.0.255
+ network 10.2.2.0 0.0.0.255
+ network 192.168.1.128 0.0.0.31
+ network 10.1.4.10 0.0.0.0
+ no auto-summary
+exit-address-family
+
+R4
+router eigrp 100
+ network 10.1.4.5 0.0.0.0
+ network 10.1.4.9 0.0.0.0
+no auto-summary
+
+how to check:
+- show ip eigrp neighbor
+- show ip eigrp topology
+- show ip protocols
+- show ip route eigrp
+
+encore skill7 multi area OSPF
+
+R4
+int lo 1
+ ip add 4.4.4.4 255.255.255.255
+router ospf 1
+ log-adjacency-changes
+ router-id 4.4.4.4
+ network 10.1.1.8 0.0.0.3 area 34
+ network 4.4.4.4 0.0.0.0 area 34
+
+R3
+int lo 1
+ ip add 3.3.3.3 255.255.255.255
+router ospf 1
+ log-adjacency-changes
+ router-id 3.3.3.3
+ network 10.1.1.8 0.0.0.3 area 34
+ network 10.1.1.4 0.0.0.3 area 0
+ network 3.3.3.3 0.0.0.0 area 34
+
+R2:
+int lo 1
+ ip add 2.2.2.2 255.255.255.255
+router ospf 1
+ log-adjacency-changes
+ router-id 2.2.2.2
+ network 10.1.1.0 0.0.0.3 area 12
+ network 10.1.1.4 0.0.0.3 area 0
+ network 2.2.2.2 0.0.0.0 area 0
+
+
+R1:
+int lo 1
+ ip add 1.1.1.1 255.255.255.255
+router ospf 1
+ log-adjacency-changes
+ router-id 1.2.2.2
+ network 10.1.1.0 0.0.0.3 area 12
+ network 1.1.1.1 0.0.0.0 area 12
